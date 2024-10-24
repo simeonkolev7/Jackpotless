@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "520687893380",
+    "project_id": "jackpotless-database",
+    "storage_bucket": "jackpotless-database.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:520687893380:android:a57afebc110a8892a83bd1",
+        "android_client_info": {
+          "package_name": "com.Monaka.Jackpotless"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmnft5XfNUn2rJiplE_wkxKzWaVKlCMoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
