@@ -3,15 +3,19 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
-
     public void PLAY()
     {
         SceneManager.LoadScene("GameScene");
     }
+
+    public void ACCOUNT()
+    {
+        SceneManager.LoadScene("Accounts");
+    }
+
     public void QUIT()
     {
         Debug.Log("Quit Game!");
-
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
