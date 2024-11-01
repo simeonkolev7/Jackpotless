@@ -95,7 +95,18 @@ public class SimpleAuthManager : MonoBehaviour
     {
         RegisterWarningText.text = message;
     }
+
+    
+    private void OnApplicationQuit()
+    {
+        
+        PlayerPrefs.DeleteKey("username"); 
+        PlayerPrefs.DeleteKey("email");    
+        PlayerPrefs.DeleteKey("password");  
+        PlayerPrefs.Save(); 
+    }
 }
+
 
 
 

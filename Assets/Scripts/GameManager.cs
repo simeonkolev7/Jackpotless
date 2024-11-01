@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public Button hitBtn;
     public Button standBtn;
     public Button backToMenuBtn; // New button for returning to the main menu
+    public Button resetScoreBtn; // Button for resetting scores
 
     private int standClicks = 0;
 
@@ -43,6 +44,7 @@ public class GameManager : MonoBehaviour
         hitBtn.onClick.AddListener(() => HitClicked());
         standBtn.onClick.AddListener(() => StandClicked());
         backToMenuBtn.onClick.AddListener(() => BackToMenu()); // Add listener for back button
+        resetScoreBtn.onClick.AddListener(() => ResetScores()); // Add listener for reset button
 
         // Load the saved win count and high score
         LoadUserData();
@@ -170,14 +172,21 @@ public class GameManager : MonoBehaviour
         UpdateHighScoreUI();
     }
 
+    public void ResetScores()
+    {
+        winCount = 0; // Reset the win count
+        highScore = 0; // Reset the high score
+        PlayerPrefs.SetInt("WinCount", winCount); // Update PlayerPrefs
+        PlayerPrefs.SetInt("HighScore", highScore); // Update PlayerPrefs
+        PlayerPrefs.Save(); // Save changes
+        UpdateWinCountUI(); // Update the UI to reflect changes
+        UpdateHighScoreUI(); // Update the UI to reflect changes
+    }
+
+
     // Method to go back to the main menu
     private void BackToMenu()
     {
-        SceneManager.LoadScene("MainMenu"); // Replace with your actual scene name
+        SceneManager.LoadScene("MainMenu");
     }
 }
-
-
-
-
-
