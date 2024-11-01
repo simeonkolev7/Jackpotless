@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement; // Add this to use SceneManager
 
 public class GameManager : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class GameManager : MonoBehaviour
     public Button dealBtn;
     public Button hitBtn;
     public Button standBtn;
+    public Button backToMenuBtn; // New button for returning to the main menu
 
     private int standClicks = 0;
 
@@ -17,7 +19,7 @@ public class GameManager : MonoBehaviour
     public PlayerScript playerScript;
     public PlayerScript dealerScript;
 
-    // public Text to access and update - hud
+    // Text elements for HUD
     public Text scoreText;
     public Text dealerScoreText;
     public Text mainText;
@@ -40,10 +42,10 @@ public class GameManager : MonoBehaviour
         dealBtn.onClick.AddListener(() => DealClicked());
         hitBtn.onClick.AddListener(() => HitClicked());
         standBtn.onClick.AddListener(() => StandClicked());
+        backToMenuBtn.onClick.AddListener(() => BackToMenu()); // Add listener for back button
 
-        // Initialize win count and high score
-        UpdateWinCountUI();
-        UpdateHighScoreUI();
+        // Load the saved win count and high score
+        LoadUserData();
     }
 
     private void DealClicked()
@@ -51,19 +53,14 @@ public class GameManager : MonoBehaviour
         // Reset round, hide text, prep for new hand
         playerScript.ResetHand();
         dealerScript.ResetHand();
-        // Hide deal hand score at start of deal
         dealerScoreText.gameObject.SetActive(false);
         mainText.gameObject.SetActive(false);
-        dealerScoreText.gameObject.SetActive(false);
         GameObject.Find("Deck").GetComponent<DeckScript>().Shuffle();
         playerScript.StartHand();
         dealerScript.StartHand();
-        // Update the scores displayed
         scoreText.text = "Hand: " + playerScript.handValue.ToString();
         dealerScoreText.text = "Hand: " + dealerScript.handValue.ToString();
-        // Place card back on dealer card, hide card
         hideCard.GetComponent<Renderer>().enabled = true;
-        // Adjust buttons visibility
         dealBtn.gameObject.SetActive(false);
         hitBtn.gameObject.SetActive(true);
         standBtn.gameObject.SetActive(true);
@@ -72,7 +69,6 @@ public class GameManager : MonoBehaviour
 
     private void HitClicked()
     {
-        // Check that there is still room on the table
         if (playerScript.cardIndex <= 10)
         {
             playerScript.GetCard();
@@ -99,38 +95,31 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Check for winnner and loser, hand is over
     void RoundOver()
     {
-        // Booleans (true/false) for bust and blackjack/21
         bool playerBust = playerScript.handValue > 21;
         bool dealerBust = dealerScript.handValue > 21;
         bool player21 = playerScript.handValue == 21;
         bool dealer21 = dealerScript.handValue == 21;
-        // If stand has been clicked less than twice, no 21s or busts, quit function
+
         if (standClicks < 2 && !playerBust && !dealerBust && !player21 && !dealer21) return;
+
         bool roundOver = true;
-        // All bust, round over
         if (playerBust && dealerBust)
         {
             mainText.text = "All Bust: No winners";
         }
-        // if player busts, dealer wins
         else if (playerBust || (!dealerBust && dealerScript.handValue > playerScript.handValue))
         {
             mainText.text = "Dealer wins!";
         }
-        // if dealer busts or player wins
         else if (dealerBust || playerScript.handValue > dealerScript.handValue)
         {
             mainText.text = "You win!";
-            // Increase win count and high score
             winCount++;
-            highScore += 10; // Example: increment score by 10 for each win
-            UpdateWinCountUI();
-            UpdateHighScoreUI();
+            highScore += 10;
+            SaveUserData(); // Save score and win count to PlayerPrefs
         }
-        //Check for tie
         else if (playerScript.handValue == dealerScript.handValue)
         {
             mainText.text = "Push: It's a tie!";
@@ -139,7 +128,7 @@ public class GameManager : MonoBehaviour
         {
             roundOver = false;
         }
-        // Set UI up for next move / hand / turn
+
         if (roundOver)
         {
             hitBtn.gameObject.SetActive(false);
@@ -152,17 +141,43 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Update the win count text
     private void UpdateWinCountUI()
     {
         winCountText.text = "Wins: " + winCount.ToString();
     }
 
-    // Update the high score text
     private void UpdateHighScoreUI()
     {
         highScoreText.text = "High Score: " + highScore.ToString();
     }
+
+    // Method to save user data
+    private void SaveUserData()
+    {
+        PlayerPrefs.SetInt("WinCount", winCount);
+        PlayerPrefs.SetInt("HighScore", highScore);
+        PlayerPrefs.Save();
+        UpdateWinCountUI();
+        UpdateHighScoreUI();
+    }
+
+    // Method to load user data
+    private void LoadUserData()
+    {
+        winCount = PlayerPrefs.GetInt("WinCount", 0);
+        highScore = PlayerPrefs.GetInt("HighScore", 0);
+        UpdateWinCountUI();
+        UpdateHighScoreUI();
+    }
+
+    // Method to go back to the main menu
+    private void BackToMenu()
+    {
+        SceneManager.LoadScene("MainMenu"); // Replace with your actual scene name
+    }
 }
+
+
+
 
 
