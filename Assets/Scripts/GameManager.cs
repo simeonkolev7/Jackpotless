@@ -1,18 +1,20 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement; // Add this to use SceneManager
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    // Game Buttons
+    // UI Elements
     public Button dealBtn;
     public Button hitBtn;
     public Button standBtn;
-    public Button backToMenuBtn; // New button for returning to the main menu
-    public Button resetScoreBtn; // Button for resetting scores
+    public Button backToMenuBtn;
+    public Button resetScoreBtn;
+    public Button resumeBtn;
+    public Button pauseBtn; // Pause button
+    public GameObject pauseMenuPanel;
+    public Text pausedText;
 
     private int standClicks = 0;
 
@@ -30,12 +32,14 @@ public class GameManager : MonoBehaviour
     public GameObject hideCard;
 
     // Highscore and Win Count
-    private int winCount = 0;  // Tracks how many rounds the player has won
-    private int highScore = 0; // Tracks the player's highest score
+    private int winCount = 0;
+    private int highScore = 0;
 
     // Text elements to display win count and high score
     public Text winCountText;
     public Text highScoreText;
+
+    private bool isPaused = false;
 
     void Start()
     {
@@ -43,8 +47,10 @@ public class GameManager : MonoBehaviour
         dealBtn.onClick.AddListener(() => DealClicked());
         hitBtn.onClick.AddListener(() => HitClicked());
         standBtn.onClick.AddListener(() => StandClicked());
-        backToMenuBtn.onClick.AddListener(() => BackToMenu()); // Add listener for back button
-        resetScoreBtn.onClick.AddListener(() => ResetScores()); // Add listener for reset button
+        backToMenuBtn.onClick.AddListener(() => BackToMenu());
+        resetScoreBtn.onClick.AddListener(() => ResetScores());
+        resumeBtn.onClick.AddListener(() => ResumeGame());
+        pauseBtn.onClick.AddListener(() => PauseGame()); // Listener for Pause button
 
         // Load the saved win count and high score
         LoadUserData();
@@ -52,7 +58,6 @@ public class GameManager : MonoBehaviour
 
     private void DealClicked()
     {
-        // Reset round, hide text, prep for new hand
         playerScript.ResetHand();
         dealerScript.ResetHand();
         dealerScoreText.gameObject.SetActive(false);
@@ -106,7 +111,6 @@ public class GameManager : MonoBehaviour
 
         if (standClicks < 2 && !playerBust && !dealerBust && !player21 && !dealer21) return;
 
-        bool roundOver = true;
         if (playerBust && dealerBust)
         {
             mainText.text = "All Bust: No winners";
@@ -120,27 +124,20 @@ public class GameManager : MonoBehaviour
             mainText.text = "You win!";
             winCount++;
             highScore += 10;
-            SaveUserData(); // Save score and win count to PlayerPrefs
+            SaveUserData();
         }
         else if (playerScript.handValue == dealerScript.handValue)
         {
             mainText.text = "Push: It's a tie!";
         }
-        else
-        {
-            roundOver = false;
-        }
 
-        if (roundOver)
-        {
-            hitBtn.gameObject.SetActive(false);
-            standBtn.gameObject.SetActive(false);
-            dealBtn.gameObject.SetActive(true);
-            mainText.gameObject.SetActive(true);
-            dealerScoreText.gameObject.SetActive(true);
-            hideCard.GetComponent<Renderer>().enabled = false;
-            standClicks = 0;
-        }
+        hitBtn.gameObject.SetActive(false);
+        standBtn.gameObject.SetActive(false);
+        dealBtn.gameObject.SetActive(true);
+        mainText.gameObject.SetActive(true);
+        dealerScoreText.gameObject.SetActive(true);
+        hideCard.GetComponent<Renderer>().enabled = false;
+        standClicks = 0;
     }
 
     private void UpdateWinCountUI()
@@ -153,7 +150,6 @@ public class GameManager : MonoBehaviour
         highScoreText.text = "High Score: " + highScore.ToString();
     }
 
-    // Method to save user data
     private void SaveUserData()
     {
         PlayerPrefs.SetInt("WinCount", winCount);
@@ -163,7 +159,6 @@ public class GameManager : MonoBehaviour
         UpdateHighScoreUI();
     }
 
-    // Method to load user data
     private void LoadUserData()
     {
         winCount = PlayerPrefs.GetInt("WinCount", 0);
@@ -174,19 +169,48 @@ public class GameManager : MonoBehaviour
 
     public void ResetScores()
     {
-        winCount = 0; // Reset the win count
-        highScore = 0; // Reset the high score
-        PlayerPrefs.SetInt("WinCount", winCount); // Update PlayerPrefs
-        PlayerPrefs.SetInt("HighScore", highScore); // Update PlayerPrefs
-        PlayerPrefs.Save(); // Save changes
-        UpdateWinCountUI(); // Update the UI to reflect changes
-        UpdateHighScoreUI(); // Update the UI to reflect changes
+        winCount = 0;
+        highScore = 0;
+        PlayerPrefs.SetInt("WinCount", winCount);
+        PlayerPrefs.SetInt("HighScore", highScore);
+        PlayerPrefs.Save();
+        UpdateWinCountUI();
+        UpdateHighScoreUI();
     }
 
+    public void PauseGame()
+    {
+        isPaused = true;
+        pauseMenuPanel.SetActive(true);
+        Time.timeScale = 0f; // Pause game time
+        StartCoroutine(BlinkPausedText());
+    }
 
-    // Method to go back to the main menu
+    public void ResumeGame()
+    {
+        isPaused = false;
+        pauseMenuPanel.SetActive(false);
+        Time.timeScale = 1f; // Resume game time
+        StopCoroutine(BlinkPausedText());
+        pausedText.gameObject.SetActive(true); // Ensure text is visible when unpaused
+    }
+
+    private IEnumerator BlinkPausedText()
+    {
+        while (isPaused)
+        {
+            pausedText.gameObject.SetActive(!pausedText.gameObject.activeSelf); // Toggle visibility
+            yield return new WaitForSecondsRealtime(0.5f); // Use unscaled time
+        }
+    }
+
     private void BackToMenu()
     {
+        Time.timeScale = 1f; // Ensure time scale is reset
         SceneManager.LoadScene("MainMenu");
     }
 }
+
+
+
+
