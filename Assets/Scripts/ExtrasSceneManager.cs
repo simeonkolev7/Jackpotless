@@ -1,36 +1,55 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ExtrasSceneManager : MonoBehaviour
 {
-    public GameObject tutorialPanel; // Reference to the tutorial panel
-    public GameObject extrasPanel;   // Reference to the main extras panel
+    public GameObject extrasPanel;       // Reference to the main Extras Panel
+    public GameObject tutorialPanel;    // Reference to the Tutorial Panel
+    public GameObject achievementsPanel; // Reference to the Achievements Panel
+    public GameObject cosmeticsPanel;   // Reference to the Cosmetics Panel
 
     private void Start()
     {
-        // Ensure tutorial panel is hidden at the start
-        if (tutorialPanel != null)
-        {
-            tutorialPanel.SetActive(false);
-        }
-
-        // Ensure extras panel is visible at the start
-        if (extrasPanel != null)
-        {
-            extrasPanel.SetActive(true);
-        }
+        // Ensure all panels are hidden except for the Extras Panel
+        if (extrasPanel != null) extrasPanel.SetActive(true);
+        if (tutorialPanel != null) tutorialPanel.SetActive(false);
+        if (achievementsPanel != null) achievementsPanel.SetActive(false);
+        if (cosmeticsPanel != null) cosmeticsPanel.SetActive(false);
     }
 
     public void ShowTutorial()
     {
-        // Hide the extras panel and show the tutorial panel
+        // Show Tutorial Panel and hide Extras Panel
         if (extrasPanel != null) extrasPanel.SetActive(false);
         if (tutorialPanel != null) tutorialPanel.SetActive(true);
     }
 
+    public void ShowAchievements()
+    {
+        // Show Achievements Panel and hide Extras Panel
+        if (extrasPanel != null) extrasPanel.SetActive(false);
+        if (achievementsPanel != null) achievementsPanel.SetActive(true);
+    }
+
+    public void ShowCosmetics()
+    {
+        // Show Cosmetics Panel and hide Extras Panel
+        if (extrasPanel != null) extrasPanel.SetActive(false);
+        if (cosmeticsPanel != null) cosmeticsPanel.SetActive(true);
+    }
+
     public void BackToExtras()
     {
-        // Hide the tutorial panel and show the extras panel
-        if (tutorialPanel != null) tutorialPanel.SetActive(false);
+        // Show Extras Panel and hide all other panels
         if (extrasPanel != null) extrasPanel.SetActive(true);
+        if (tutorialPanel != null) tutorialPanel.SetActive(false);
+        if (achievementsPanel != null) achievementsPanel.SetActive(false);
+        if (cosmeticsPanel != null) cosmeticsPanel.SetActive(false);
+    }
+
+    public void BackToMainMenu()
+    {
+        // Load the Main Menu scene
+        SceneManager.LoadScene("MainMenu");
     }
 }
