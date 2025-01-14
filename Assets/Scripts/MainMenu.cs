@@ -59,6 +59,10 @@ public class MainMenuManager : MonoBehaviour
         Application.Quit();
 #endif
     }
+    public void EXTRAS()
+    {
+        StartCoroutine(LoadSceneAsync("Extras"));
+    }
 
     private IEnumerator LoadSceneAsync(string sceneName)
     {
@@ -115,3 +119,4 @@ public class MainMenuManager : MonoBehaviour
         }
     }
 }
+
