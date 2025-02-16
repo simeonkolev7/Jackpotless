@@ -52,9 +52,13 @@ public class DeckScript : MonoBehaviour
     // Deal a card, return its value
     public int DealCard(CardScript cardScript)
     {
-        // Assign the next card sprite and value to the cardScript object
-        cardScript.SetSprite(cardSprites[currentIndex]);
+        // Use the selected skin from CardSkinManager
+        int cardID = currentIndex % 52; // Assuming 52 cards
+        Sprite cardSprite = CardSkinManager.Instance.GetCardSprite(cardID);
+
+        cardScript.SetSprite(cardSprite);
         cardScript.SetValue(cardValues[currentIndex]);
+
         currentIndex++; // Move to the next card
         return cardScript.GetValueOfCard(); // Return the value of the dealt card
     }
@@ -62,6 +66,6 @@ public class DeckScript : MonoBehaviour
     // Get the sprite for the back of the cards (used to hide the dealer's card)
     public Sprite GetCardBack()
     {
-        return cardSprites[0]; // Assuming the first sprite is the card back
+        return CardSkinManager.Instance.GetCardBackSprite();
     }
 }
