@@ -41,6 +41,10 @@ public class GameManager : MonoBehaviour
 
     private bool isPaused = false;
 
+    // Cosmetic UI Elements
+    public Button cosmeticBtn; // Button to open the cosmetic panel
+    public GameObject cosmeticPanel; // Panel for cosmetic options
+
     void Start()
     {
         // Add on click listeners to the buttons
@@ -52,8 +56,14 @@ public class GameManager : MonoBehaviour
         resumeBtn.onClick.AddListener(() => ResumeGame());
         pauseBtn.onClick.AddListener(() => PauseGame()); // Listener for Pause button
 
+        // Add listener for cosmetic button
+        cosmeticBtn.onClick.AddListener(() => ToggleCosmeticPanel());
+
         // Load the saved win count and high score
         LoadUserData();
+
+        // Hide the cosmetic panel on start
+        cosmeticPanel.SetActive(false);
     }
 
     private void DealClicked()
@@ -209,7 +219,15 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f; // Ensure time scale is reset
         SceneManager.LoadScene("MainMenu");
     }
+
+    public void ToggleCosmeticPanel()
+    {
+        // Toggle the cosmetic panel visibility
+        bool isActive = cosmeticPanel.activeSelf;
+        cosmeticPanel.SetActive(!isActive);
+    }
 }
+
 
 
 
