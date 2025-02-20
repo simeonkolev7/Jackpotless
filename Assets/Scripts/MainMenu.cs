@@ -36,7 +36,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void UpdateLoggedInUserText(string username)
     {
-        LoggedInUserText.text = "Logged in as: " + username;
+        LoggedInUserText.text = " " + username;
     }
 
     public void PLAY()

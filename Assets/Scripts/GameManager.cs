@@ -75,8 +75,8 @@ public class GameManager : MonoBehaviour
         GameObject.Find("Deck").GetComponent<DeckScript>().Shuffle();
         playerScript.StartHand();
         dealerScript.StartHand();
-        scoreText.text = "Hand: " + playerScript.handValue.ToString();
-        dealerScoreText.text = "Hand: " + dealerScript.handValue.ToString();
+        scoreText.text = " " + playerScript.handValue.ToString();
+        dealerScoreText.text = " " + dealerScript.handValue.ToString();
         hideCard.GetComponent<Renderer>().enabled = true;
         dealBtn.gameObject.SetActive(false);
         hitBtn.gameObject.SetActive(true);
@@ -89,7 +89,7 @@ public class GameManager : MonoBehaviour
         if (playerScript.cardIndex <= 10)
         {
             playerScript.GetCard();
-            scoreText.text = "Hand: " + playerScript.handValue.ToString();
+            scoreText.text = " " + playerScript.handValue.ToString();
             if (playerScript.handValue > 20) RoundOver();
         }
     }
@@ -107,7 +107,7 @@ public class GameManager : MonoBehaviour
         while (dealerScript.handValue < 16 && dealerScript.cardIndex < 10)
         {
             dealerScript.GetCard();
-            dealerScoreText.text = "Hand: " + dealerScript.handValue.ToString();
+            dealerScoreText.text = " " + dealerScript.handValue.ToString();
             if (dealerScript.handValue > 20) RoundOver();
         }
     }
