@@ -2,6 +2,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using TMPro;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -12,67 +14,70 @@ public class GameManager : MonoBehaviour
     public Button backToMenuBtn;
     public Button resetScoreBtn;
     public Button resumeBtn;
-    public Button pauseBtn; // Pause button
+    public Button pauseBtn;
     public GameObject pauseMenuPanel;
     public Text pausedText;
 
     private int standClicks = 0;
 
-    // Access the player and dealer's script
     public PlayerScript playerScript;
     public PlayerScript dealerScript;
 
-    // Text elements for HUD
     public Text scoreText;
     public Text dealerScoreText;
     public Text mainText;
     public Text standBtnText;
+    public Text specialCardText; // Optional UI text to show current special card
 
-    // Card hiding dealer's 2nd card
     public GameObject hideCard;
 
-    // Highscore and Win Count
     private int winCount = 0;
     private int highScore = 0;
 
-    // Text elements to display win count and high score
     public Text winCountText;
     public Text highScoreText;
 
     private bool isPaused = false;
 
-    // Cosmetic UI Elements
-    public Button cosmeticBtn; // Button to open the cosmetic panel
-    public GameObject cosmeticPanel; // Panel for cosmetic options
+    public Button cosmeticBtn;
+    public GameObject cosmeticPanel;
+
+    public SpecialCardHandler specialCardHandler;
 
     void Start()
     {
-        // Add on click listeners to the buttons
         dealBtn.onClick.AddListener(() => DealClicked());
         hitBtn.onClick.AddListener(() => HitClicked());
         standBtn.onClick.AddListener(() => StandClicked());
         backToMenuBtn.onClick.AddListener(() => BackToMenu());
         resetScoreBtn.onClick.AddListener(() => ResetScores());
         resumeBtn.onClick.AddListener(() => ResumeGame());
-        pauseBtn.onClick.AddListener(() => PauseGame()); // Listener for Pause button
-
-        // Add listener for cosmetic button
+        pauseBtn.onClick.AddListener(() => PauseGame());
         cosmeticBtn.onClick.AddListener(() => ToggleCosmeticPanel());
 
-        // Load the saved win count and high score
         LoadUserData();
-
-        // Hide the cosmetic panel on start
         cosmeticPanel.SetActive(false);
+
+        // Ensure we have a SpecialCardHandler component
+        specialCardHandler = GetComponent<SpecialCardHandler>();
+        if (specialCardHandler == null)
+        {
+            Debug.LogWarning("Missing SpecialCardHandler, adding it dynamically.");
+            specialCardHandler = gameObject.AddComponent<SpecialCardHandler>();
+        }
     }
 
-    private void DealClicked()
+    public void DealClicked()
     {
         playerScript.ResetHand();
         dealerScript.ResetHand();
         dealerScoreText.gameObject.SetActive(false);
         mainText.gameObject.SetActive(false);
         GameObject.Find("Deck").GetComponent<DeckScript>().Shuffle();
+
+        // Assign a special card effect for this round
+        specialCardHandler.AssignNewCard();
+
         playerScript.StartHand();
         dealerScript.StartHand();
         scoreText.text = " " + playerScript.handValue.ToString();
@@ -82,44 +87,63 @@ public class GameManager : MonoBehaviour
         hitBtn.gameObject.SetActive(true);
         standBtn.gameObject.SetActive(true);
         standBtnText.text = "Stand";
+
+        if (specialCardText != null)
+        {
+            var type = specialCardHandler.GetCurrentCardType();
+            specialCardText.text = type switch
+            {
+                SpecialCardType.Limit25 => "Special Card: Limit 25!",
+                SpecialCardType.Limit17 => "Special Card: Limit 17!",
+                _ => "Standard Blackjack Rules"
+            };
+        }
     }
 
-    private void HitClicked()
+    public void HitClicked()
     {
         if (playerScript.cardIndex <= 10)
         {
             playerScript.GetCard();
             scoreText.text = " " + playerScript.handValue.ToString();
-            if (playerScript.handValue > 20) RoundOver();
+
+            int limit = specialCardHandler.GetCurrentLimit();
+            if (playerScript.handValue > limit)
+                RoundOver();
         }
     }
 
-    private void StandClicked()
+    public void StandClicked()
     {
         standClicks++;
-        if (standClicks > 1) RoundOver();
+        if (standClicks > 1)
+            RoundOver();
         HitDealer();
         standBtnText.text = "Call";
     }
 
-    private void HitDealer()
+    public void HitDealer()
     {
+        int limit = specialCardHandler.GetCurrentLimit();
         while (dealerScript.handValue < 16 && dealerScript.cardIndex < 10)
         {
             dealerScript.GetCard();
             dealerScoreText.text = " " + dealerScript.handValue.ToString();
-            if (dealerScript.handValue > 20) RoundOver();
+            if (dealerScript.handValue > limit)
+                RoundOver();
         }
     }
 
     void RoundOver()
     {
-        bool playerBust = playerScript.handValue > 21;
-        bool dealerBust = dealerScript.handValue > 21;
-        bool player21 = playerScript.handValue == 21;
-        bool dealer21 = dealerScript.handValue == 21;
+        int limit = specialCardHandler.GetCurrentLimit();
 
-        if (standClicks < 2 && !playerBust && !dealerBust && !player21 && !dealer21) return;
+        bool playerBust = playerScript.handValue > limit;
+        bool dealerBust = dealerScript.handValue > limit;
+        bool playerMax = playerScript.handValue == limit;
+        bool dealerMax = dealerScript.handValue == limit;
+
+        if (standClicks < 2 && !playerBust && !dealerBust && !playerMax && !dealerMax) return;
 
         if (playerBust && dealerBust)
         {
@@ -136,7 +160,7 @@ public class GameManager : MonoBehaviour
             highScore += 10;
             SaveUserData();
         }
-        else if (playerScript.handValue == dealerScript.handValue)
+        else
         {
             mainText.text = "Push: It's a tie!";
         }
@@ -150,15 +174,8 @@ public class GameManager : MonoBehaviour
         standClicks = 0;
     }
 
-    private void UpdateWinCountUI()
-    {
-        winCountText.text = "Wins: " + winCount.ToString();
-    }
-
-    private void UpdateHighScoreUI()
-    {
-        highScoreText.text = "High Score: " + highScore.ToString();
-    }
+    private void UpdateWinCountUI() => winCountText.text = "Wins: " + winCount;
+    private void UpdateHighScoreUI() => highScoreText.text = "High Score: " + highScore;
 
     private void SaveUserData()
     {
@@ -192,7 +209,7 @@ public class GameManager : MonoBehaviour
     {
         isPaused = true;
         pauseMenuPanel.SetActive(true);
-        Time.timeScale = 0f; // Pause game time
+        Time.timeScale = 0f;
         StartCoroutine(BlinkPausedText());
     }
 
@@ -200,34 +217,32 @@ public class GameManager : MonoBehaviour
     {
         isPaused = false;
         pauseMenuPanel.SetActive(false);
-        Time.timeScale = 1f; // Resume game time
+        Time.timeScale = 1f;
         StopCoroutine(BlinkPausedText());
-        pausedText.gameObject.SetActive(true); // Ensure text is visible when unpaused
+        pausedText.gameObject.SetActive(true);
     }
 
     private IEnumerator BlinkPausedText()
     {
         while (isPaused)
         {
-            pausedText.gameObject.SetActive(!pausedText.gameObject.activeSelf); // Toggle visibility
-            yield return new WaitForSecondsRealtime(0.5f); // Use unscaled time
+            pausedText.gameObject.SetActive(!pausedText.gameObject.activeSelf);
+            yield return new WaitForSecondsRealtime(0.5f);
         }
     }
 
     private void BackToMenu()
     {
-        Time.timeScale = 1f; // Ensure time scale is reset
+        Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
     }
 
     public void ToggleCosmeticPanel()
     {
-        // Toggle the cosmetic panel visibility
         bool isActive = cosmeticPanel.activeSelf;
         cosmeticPanel.SetActive(!isActive);
     }
 }
-
 
 
 
